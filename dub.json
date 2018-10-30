@@ -1,0 +1,10 @@
+{
+	"name": "vos2mid",
+	"authors": [
+		"dewero"
+	],
+	"description": "A vos to midi file converter",
+	"copyright": "Copyright © 2018, dewero",
+	"license": "GPLv3",
+	"targetPath": "./bin"
+}
