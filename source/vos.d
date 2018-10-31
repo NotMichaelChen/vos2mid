@@ -1,6 +1,7 @@
 module vos;
 
 import smf;
+import std.stdio;
 import core.stdc.stdlib, core.stdc.string;
 
 /*
@@ -59,7 +60,7 @@ struct vos_t {
     ushort format; /* vos file format, 0 for vos, 1 for canmusic */
     size_t nchannels; /* number of channels */
     smf_t* smf; /* embedded smf chunk */
-    channel_t[] channels; /* channel info list */
+    channel_t* channels; /* channel info list */
 }
 
 void vos_free(vos_t* vos)
@@ -86,9 +87,14 @@ smf_t* vos2smf(vos_t* vos)
         return retval; /* corrupted vos file */
     nchannel = vos.format ? vos.nchannels : vos.nchannels - 1; /* remove redundant channel for vos format */
 
-    retval = cast(smf_t * ) malloc(smf_t.sizeof - track_t.sizeof + track_t.sizeof * (nchannel * 2 + vos.smf.ntracks));
+    retval = cast(smf_t * ) malloc(smf_t.sizeof);
     if (!retval)
         return retval; /* not enough memory */
+
+    retval.tracks = cast(track_t*) malloc(track_t.sizeof * (nchannel * 2 + vos.smf.ntracks - 1));
+    if(!retval.tracks)
+        return retval;
+
     retval.status = 1;
     retval.ttempo.nevents = 0;
     retval.ttempo.events = null;
@@ -196,9 +202,12 @@ vos_t* vos_parser(ubyte* chunk, size_t size)
         channel = 17; /* vos has constant 17 channels (the last channel is redundant) */
         offset = 0x40; /* begin reading vos meta info from 0x40 */
         
-        retval = cast(vos_t * ) malloc(vos_t.sizeof - channel_t.sizeof + channel_t.sizeof * channel);
+        retval = cast(vos_t * ) malloc(vos_t.sizeof);
         if (!retval)
             return retval; /* not enough memory */
+
+        retval.channels = cast(channel_t*) malloc(channel_t.sizeof * (channel-1));
+
         retval.format = 0; /* vos file */
         retval.smf = null;
         for (retval.nchannels = 0; retval.nchannels < channel; retval.nchannels++)
@@ -467,9 +476,15 @@ vos_t* vos_parser(ubyte* chunk, size_t size)
                 }
                 offset += 4; /* skip 4 magic bytes */
 
-                retval = cast(vos_t * ) malloc(vos_t.sizeof - channel_t.sizeof + channel_t.sizeof * channel);
+
+                retval = cast(vos_t * ) malloc(vos_t.sizeof);
                 if (!retval)
                     return retval; /* not enough memory */
+                
+                retval.channels = cast(channel_t*) malloc(channel_t.sizeof * (channel - 1));
+                if(!retval.channels)
+                    return retval;
+
                 retval.format = 1; /* canmusic file */
                 retval.smf = null;
                 for (retval.nchannels = 0; retval.nchannels < channel; retval.nchannels++)

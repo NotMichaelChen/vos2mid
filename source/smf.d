@@ -66,7 +66,7 @@ struct smf_t
     ushort division; /* division */
     track_t ttempo; /* tempo info track */
     size_t ntracks; /* number of tracks */
-    track_t[] tracks; /* track info list */
+    track_t* tracks; /* track info list */
 }
 
 void smf_free(smf_t* smf)
@@ -271,9 +271,14 @@ smf_t* smf_parser(ubyte* chunk, size_t size)
                 track += chunk[offset++];
             }
 
-            retval = cast(smf_t*) malloc(smf_t.sizeof - track_t.sizeof + track_t.sizeof * track);
+            retval = cast(smf_t*) malloc(smf_t.sizeof);
             if (!retval)
                 return retval; /* not enough memory */
+
+            retval.tracks = cast(track_t*) malloc(track_t.sizeof * (track-1));
+            if(!retval.tracks)
+                return retval;
+
             retval.format = event.bytes[1];
             retval.division = chunk[offset++];
             retval.division <<= 8;
