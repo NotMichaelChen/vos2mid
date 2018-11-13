@@ -1,6 +1,6 @@
 module varbyte;
 
-import std.stdio;
+import std.stdio, std.algorithm;
 
 void writeVarbyte(File fp, size_t num)
 {
@@ -15,5 +15,5 @@ void writeVarbyte(File fp, size_t num)
 
     bytestream[0] -= 128;
 
-    fp.rawWrite(bytestream);
+    fp.rawWrite(bytestream.reverse());
 }

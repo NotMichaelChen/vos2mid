@@ -23,6 +23,9 @@ private void writeHeader(File fp, smf_t* smf)
     immutable ushort format = smf.format;
     fp.rawWrite(std.bitmanip.nativeToBigEndian(format));
 
+    immutable ushort n = cast(ushort) smf.ntracks;
+    fp.rawWrite(std.bitmanip.nativeToBigEndian(n));
+
     immutable ushort division = smf.division;
     fp.rawWrite(std.bitmanip.nativeToBigEndian(division));
 }
@@ -50,7 +53,7 @@ private void dump_tempo_trk(File fp, track_t* trk)
         //instead of Set Tempo (0x51)
         fp.rawWrite!ubyte([0x51, 0x03]);
         //First byte is now 0, so skip it
-        fp.rawWrite!ubyte(std.bitmanip.nativeToBigEndian(trk.events[i].data)[].reverse()[1..$]);
+        fp.rawWrite!ubyte(std.bitmanip.nativeToBigEndian(trk.events[i].data)[1..$]);
 
     }
 
@@ -81,9 +84,9 @@ void dump_trk(File fp, track_t* trk)
         prevtime = trk.events[i].tick;
 
         if(trk.events[i].bytes[0] >= 0xC0 && trk.events[i].bytes[0] <= 0xCF)
-            fp.rawWrite!ubyte(trk.events[i].bytes[1..2]);
+            fp.rawWrite!ubyte(trk.events[i].bytes[0..2]);
         else
-            fp.rawWrite!ubyte(trk.events[i].bytes[1..3]);
+            fp.rawWrite!ubyte(trk.events[i].bytes[0..3]);
     }
 
     fp.rawWrite!ubyte([0x00, 0xFF, 0x2F, 0x00]);
