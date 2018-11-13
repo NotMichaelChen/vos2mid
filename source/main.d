@@ -1,7 +1,7 @@
 module main;
 
 import std.stdio, std.file;
-import vos, smf;
+import vos, smf, dump;
 
 void main(string[] args) {
     writeln("Hello World!");
@@ -17,4 +17,8 @@ void main(string[] args) {
     writeln(smf.division);
     writeln(smf.ttempo.nevents);
     writeln(smf.ntracks);
+
+    File fp = File("./bin/test.mid", "wb");
+
+    mid2smf(fp, smf);
 }
